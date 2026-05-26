@@ -1,0 +1,32 @@
+# DijkstraBot Filter Configuration
+# Edit this file for each campaign. Multiple keyword values are OR conditions.
+
+audience:
+  follower_min: 10000
+  follower_max: 500000
+  location_country: "India"       # null = any
+  location_city: null
+
+creator:
+  gender: null                    # male | female | non-binary | null (any)
+  category: "fitness"             # from taxonomy, or null
+  bio_keywords:
+    - "fitness coach"
+    - "personal trainer"
+    - "gym"
+  bio_hashtags:
+    - "#fitnessmotivation"
+    - "#gymlife"
+  community_tags:
+    - "vegan"
+    - "natural athlete"
+
+performance:
+  min_engagement_rate: 2.0        # percent
+  min_dijkstra_score: 40          # 0-100
+  verified_only: false
+
+output:
+  max_results: 50000
+  sort_by: "dijkstra_score"       # dijkstra_score | follower_count | engagement_rate
+  google_drive_folder_id: "YOUR_FOLDER_ID"
