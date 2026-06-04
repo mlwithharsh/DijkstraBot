@@ -17,10 +17,10 @@ class RateLimiter:
                 if self.tokens >= 1:
                     self.tokens -= 1
                     return
-
+                
                 # Calculate wait time
                 wait_time = (1 - self.tokens) * self.interval
-
+            
             # Sleep outside the lock
             await asyncio.sleep(max(0.1, wait_time))
 

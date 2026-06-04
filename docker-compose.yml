@@ -1,0 +1,76 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: influencer_finder
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/influencer_finder
+      REDIS_URL: redis://redis:6379/0
+      APIFY_TOKEN: ${APIFY_TOKEN:-}
+      APIFY_GOOGLE_ACTOR: ${APIFY_GOOGLE_ACTOR:-apify/google-search-scraper}
+      APIFY_INSTAGRAM_ACTOR: ${APIFY_INSTAGRAM_ACTOR:-apify/instagram-profile-scraper}
+      APIFY_YOUTUBE_ACTOR: ${APIFY_YOUTUBE_ACTOR:-scrapio/youtube-scraper}
+      FRONTEND_ORIGIN: http://localhost:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "backend.app.worker"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/influencer_finder
+      REDIS_URL: redis://redis:6379/0
+      APIFY_TOKEN: ${APIFY_TOKEN:-}
+      APIFY_GOOGLE_ACTOR: ${APIFY_GOOGLE_ACTOR:-apify/google-search-scraper}
+      APIFY_INSTAGRAM_ACTOR: ${APIFY_INSTAGRAM_ACTOR:-apify/instagram-profile-scraper}
+      APIFY_YOUTUBE_ACTOR: ${APIFY_YOUTUBE_ACTOR:-scrapio/youtube-scraper}
+    depends_on:
+      - db
+      - redis
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "backend.app.scheduler"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/influencer_finder
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

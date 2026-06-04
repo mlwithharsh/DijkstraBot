@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict, Optional, Any
+from typing import List, Any
 from dijkstrabot.models import RawProfile, EnrichedProfile
 from dijkstrabot.utils.geo import extract_location
 from dijkstrabot.utils.logger import logger
@@ -16,6 +16,9 @@ NICHE_TAXONOMY = {
     "business": ["entrepreneur", "ceo", "founder", "business", "marketing", "sales"],
     "gaming": ["gamer", "gaming", "streamer", "esports", "twitch", "playstation", "xbox"],
     "artist": ["artist", "painter", "sculptor", "illustrator", "creative", "art", "gallery", "sketch"],
+    "dancer": ["dance", "dancer", "choreographer", "choreography", "hiphop", "ballet", "contemporary"],
+    "music": ["musician", "singer", "rapper", "producer", "dj", "songwriter", "music"],
+    "comedy": ["comedian", "comedy", "standup", "sketch comedy", "funny", "memes"],
 }
 
 def extract_hashtags(bio: str) -> List[str]:
@@ -52,10 +55,13 @@ async def enrich_profile(profile: RawProfile, config: Any) -> EnrichedProfile:
     followers = profile.follower_count or 1
     engagement_rate = ((likes + comments) / followers) * 100
     location = extract_location(bio)
-    category = score_category(bio, hashtags)
+    category = (profile.api_category or "").lower() or score_category(bio, hashtags)
     matched_kws = match_keywords(bio, config.creator.bio_keywords)
+    gender = detect_gender(profile)
+    data = profile.model_dump()
+    data["gender"] = gender
     return EnrichedProfile(
-        **profile.model_dump(),
+        **data,
         profile_url=f"https://instagram.com/{profile.username}",
         engagement_rate=round(engagement_rate, 2),
         est_avg_reach=int(engagement_rate * followers / 100),

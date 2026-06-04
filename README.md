@@ -1,96 +1,151 @@
-# DijkstraBot — Instagram Influencer Intelligence
+# India Influencer Finder
 
-DijkstraBot is a production-grade Python CLI application designed for discovering, enriching, and scoring Instagram influencers at scale. It uses licensed data APIs to provide deep insights without violating Instagram's Terms of Service.
+Production-ready MVP for discovering Indian Instagram creator profiles from public web sources, enriching the profiles through Apify, classifying them, and storing everything in PostgreSQL-compatible Supabase tables.
 
-The system features a custom weighted algorithm called the **DijkstraScore**, which evaluates creators based on engagement, authenticity, niche relevance, and more. It is built to process over 50,000 profiles per run, delivering structured data to Google Sheets and local XLSX files.
+## What It Does
 
-## Prerequisites
+- Discovers public Instagram profile URLs from Google search results, public creator directories, YouTube channel references, and user-imported URLs.
+- Enriches each Instagram profile through Apify's `apify/instagram-profile-scraper`.
+- Classifies creators into the requested categories.
+- Detects India signals from bios and profile text.
+- Stores rows in `influencers` and refresh events in `refresh_jobs`.
+- Supports manual refresh and scheduled refresh based on follower count.
+- Exposes a FastAPI search API and a Next.js dashboard.
 
-- Python 3.11+
-- Phyllo API Credentials ([Sign up here](https://getphyllo.com))
-- RapidAPI Key (for Instagram Data API fallback)
-- Google Service Account JSON (for Google Sheets export)
+## Apify Strategy
 
-## Installation
+This MVP does not use Meta Graph API for discovery.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-repo/dijkstrabot.git
-   cd dijkstrabot
-   ```
+Recommended Apify actors:
 
-2. Run the setup script:
-   ```bash
-   chmod +x setup.sh
-   ./setup.sh
-   ```
+- `apify/google-search-scraper` for discovery
+- `apify/instagram-profile-scraper` for enrichment
 
-3. Configure your environment:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys
-   ```
+For low-cost operation, the app:
 
-## Configuration
+- Uses Google search to discover public URLs.
+- Limits enrichment with `APIFY_INSTAGRAM_PROFILE_LIMIT`.
+- Limits daily discovery with `APIFY_MAX_PROFILES_PER_DAY`.
 
-Edit `config.yaml` to define your search and filter criteria:
+You can swap actor IDs later through environment variables without changing application code.
 
-- `audience`: Set follower ranges and target locations.
-- `creator`: Specify niche categories, bio keywords, and hashtags.
-- `performance`: Define minimum engagement rates and DijkstraScore thresholds.
-- `output`: Configure result limits and export settings.
+## Folder Structure
 
-## Usage Examples
+```text
+backend/
+  app/
+    api.py
+    core/
+    models.py
+    repositories/
+    services/
+    worker.py
+    scheduler.py
+  Dockerfile
+  requirements.txt
+frontend/
+  app/
+  Dockerfile
+  package.json
+supabase/
+  schema.sql
+  migrations/001_init.sql
+docker-compose.yml
+.env.example
+```
 
-### End-to-End Discovery
+## Local Run
+
+1. Copy `.env.example` to `.env` and fill in values.
+2. Start the stack:
+
 ```bash
-python main.py --config my_campaign.yaml --max-results 10000
+docker compose up --build
 ```
 
-### Dry Run (Mock Data)
-```bash
-python main.py --dry-run
-```
+Services:
 
-### Scheduled Daily Run
-```bash
-python main.py --schedule "0 6 * * *"
-```
+- Frontend: `http://localhost:3000`
+- FastAPI: `http://localhost:8000`
+- PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
 
-## Output Reference
+## Environment
 
-| Column | Description |
-|--------|-------------|
-| username | Instagram handle |
-| profile_url | Link to profile |
-| follower_count | Total followers |
-| engagement_rate | (Likes + Comments) / Followers * 100 |
-| location | Extracted city/country |
-| category | Detected niche (fitness, beauty, etc.) |
-| dijkstra_score | Weighted quality score (0-100) |
+Required:
 
-## Troubleshooting
+- `DATABASE_URL`
+- `REDIS_URL`
+- `APIFY_TOKEN`
 
-- **Rate Limits**: If you hit 429 errors, the built-in rate limiter will handle backoff automatically.
-- **Auth Errors**: Ensure your `.env` keys are correct and the Google Service Account has access to the target folder.
-- **spaCy Model**: If NLP fails, ensure `en_core_web_sm` is downloaded via `python -m spacy download en_core_web_sm`.
+Recommended:
 
-## Architecture Diagram
+- `APIFY_GOOGLE_ACTOR`
+- `APIFY_INSTAGRAM_ACTOR`
+- `APIFY_YOUTUBE_ACTOR`
+- `APIFY_MAX_PROFILES_PER_DAY`
+- `APIFY_INSTAGRAM_PROFILE_LIMIT`
 
-```
-[Phyllo API] <───┐
-                 ├── [Discovery Module] ──> [Raw Profiles]
-[RapidAPI]   <───┘           │
-                             v
-                    [Enrichment Module] (spaCy NLP)
-                             │
-                             v
-                    [Scoring Module] (DijkstraScore)
-                             │
-                             v
-                    [Filtering Module]
-                             │
-            ┌────────────────┴────────────────┐
-            v                                 v
-    [Google Sheets]                    [Local XLSX File]
-```
+For hosted Supabase, point `DATABASE_URL` at the Supabase PostgreSQL connection string.
+
+## Database
+
+Apply `supabase/schema.sql` or `supabase/migrations/001_init.sql` to your database.
+
+The app creates tables on startup in local development as a convenience, but the SQL files are the source of truth for production.
+
+## API
+
+### Search
+
+`GET /api/search`
+
+Query parameters:
+
+- `country`
+- `category`
+- `min_followers`
+- `max_followers`
+- `verified`
+
+### Stats
+
+`GET /api/stats`
+
+### Discovery
+
+`POST /api/discover`
+
+Body:
+
+- `source`: `google`, `directories`, or `youtube`
+- `query`: optional custom search query
+- `max_results`: cap for the job
+
+### Manual Import
+
+`POST /api/import`
+
+Body:
+
+- `urls`: list of Instagram profile URLs
+
+### Manual Refresh
+
+`POST /api/refresh`
+
+Body:
+
+- `profile_urls`: list of Instagram profile URLs
+
+## Refresh Policy
+
+- `followers > 100k`: refresh every 3 days
+- `10k-100k`: refresh weekly
+- `under 10k`: refresh monthly
+
+## Notes
+
+- The dashboard is intentionally simple and operational.
+- The worker and scheduler are separate processes so discovery, refresh, and UI requests do not block each other.
+- This MVP is built to demo tomorrow and to grow later, not to depend on brittle Meta discovery paths.

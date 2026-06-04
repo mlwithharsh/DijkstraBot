@@ -10,7 +10,7 @@ def setup_logger(log_level="INFO"):
         os.makedirs("logs")
     date_str = datetime.now().strftime("%Y-%m-%d")
     log_file = f"logs/dijkstrabot_{date_str}.jsonl"
-
+    
     # Check if we are running in a web context
     is_web = os.getenv("RUN_CONTEXT") == "web"
 
@@ -26,9 +26,9 @@ def setup_logger(log_level="INFO"):
         logger_factory=structlog.WriteLoggerFactory(file=open(log_file, "a", encoding="utf-8")),
         cache_logger_on_first_use=True,
     )
-
+    
     handlers = [RichHandler(rich_tracebacks=True, console=Console(stderr=True))]
-
+    
     logging.basicConfig(level=log_level, format="%(message)s", datefmt="[%X]", handlers=handlers)
     return structlog.get_logger()
 

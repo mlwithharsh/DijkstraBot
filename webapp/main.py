@@ -39,10 +39,10 @@ async def run_bot(
         ),
         output=OutputConfig(max_results=50) # Limit for web preview
     )
-
+    
     # Run discovery in the background
     asyncio.create_task(run_discovery(config, no_sheets=True))
-
+    
     return {"status": "started", "config": config}
 
 if __name__ == "__main__":
