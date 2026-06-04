@@ -1,0 +1,40 @@
+# DijkstraBot Filter Configuration
+# Edit this file for each campaign. Multiple keyword values are OR conditions.
+
+audience:
+  follower_min: 10000
+  follower_max: 500000
+  location_country: "India"       # null = any
+  location_city: null
+
+creator:
+  gender: null                    # male | female | non-binary | null (any)
+  category: "fitness"             # fitness | artist | dancer | beauty | food | travel | tech | fashion | lifestyle | etc.
+  niches:
+    - "personal trainer"
+  bio_keywords:
+    - "fitness coach"
+    - "personal trainer"
+    - "gym"
+  bio_hashtags:
+    - "#fitnessmotivation"
+    - "#gymlife"
+  community_tags:
+    - "vegan"
+    - "natural athlete"
+  seed_usernames: []              # optional handles for Meta Business Discovery
+
+performance:
+  min_engagement_rate: 2.0        # percent
+  min_dijkstra_score: 40          # 0-100
+  verified_only: false
+
+output:
+  max_results: 50000
+  sort_by: "dijkstra_score"       # dijkstra_score | follower_count | engagement_rate
+  output_dir: "./output"
+  export_format: "csv"            # csv | xlsx | both
+  use_mock_data: false            # true only for local testing
+  allow_empty_export: false       # false prevents header-only CSV files
+  profile_fetch_limit: 10         # credit-safe cap for APIs where full profiles cost credits
+  google_drive_folder_id: "YOUR_FOLDER_ID"

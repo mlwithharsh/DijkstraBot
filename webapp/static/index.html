@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DijkstraBot — Influencer Discovery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f8fafc; }
+    </style>
+</head>
+<body class="font-sans text-slate-900">
+    <div class="max-w-4xl mx-auto py-12 px-4">
+        <header class="mb-12 text-center">
+            <h1 class="text-4xl font-bold text-slate-800 mb-2">DijkstraBot</h1>
+            <p class="text-slate-500">Instagram Influencer Intelligence & Discovery System</p>
+        </header>
+
+        <main class="bg-white shadow-sm border border-slate-200 rounded-xl p-8">
+            <form action="/run" method="POST" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Required Category -->
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-slate-700 mb-1">Required Category</label>
+                        <select name="category" id="category" class="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-slate-50 p-2">
+                            <option value="fitness">Fitness</option>
+                            <option value="beauty">Beauty</option>
+                            <option value="food">Food</option>
+                            <option value="travel">Travel</option>
+                            <option value="tech">Tech</option>
+                            <option value="fashion">Fashion</option>
+                            <option value="lifestyle">Lifestyle</option>
+                            <option value="artist">Artist</option>
+                        </select>
+                    </div>
+
+                    <!-- Location -->
+                    <div>
+                        <label for="location" class="block text-sm font-medium text-slate-700 mb-1">Specific Region/Location</label>
+                        <input type="text" name="location" id="location" placeholder="e.g. India" class="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-slate-50 p-2">
+                    </div>
+
+                    <!-- Follower Limit -->
+                    <div>
+                        <label for="follower_min" class="block text-sm font-medium text-slate-700 mb-1">Follower Min</label>
+                        <input type="number" name="follower_min" id="follower_min" value="10000" class="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-slate-50 p-2">
+                    </div>
+                    <div>
+                        <label for="follower_max" class="block text-sm font-medium text-slate-700 mb-1">Follower Max</label>
+                        <input type="number" name="follower_max" id="follower_max" value="500000" class="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-slate-50 p-2">
+                    </div>
+                </div>
+
+                <!-- Hashtags -->
+                <div>
+                    <label for="hashtags" class="block text-sm font-medium text-slate-700 mb-1">Hashtags (comma separated)</label>
+                    <input type="text" name="hashtags" id="hashtags" placeholder="#fitness, #gym" class="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-slate-50 p-2">
+                </div>
+
+                <!-- Specific Terms -->
+                <div>
+                    <label for="keywords" class="block text-sm font-medium text-slate-700 mb-1">Specific Terms / Keywords</label>
+                    <input type="text" name="keywords" id="keywords" placeholder="fitness coach, personal trainer" class="w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-slate-50 p-2">
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-md font-semibold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100">
+                        Run Discovery Engine
+                    </button>
+                </div>
+            </form>
+        </main>
+
+        <footer class="mt-12 text-center text-slate-400 text-sm">
+            DijkstraBot v1.0 • Integrated Discovery & Scoring
+        </footer>
+    </div>
+</body>
+</html>
